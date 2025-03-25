@@ -36,10 +36,10 @@ if (isset($_COOKIE['session'])) {
         <button id="favoris-btn">Favoris</button>
         <button id="add-fav-btn">Ajouter aux favoris</button>
     </form>
+    <!-- Affichage des livres -->
+<div id="search-results"></div>
 </div>
 
-<!-- Affichage des livres -->
-<div class="search-results"></div>
 <script  src="script.js"></script>
 <?php 
 // Fin du fichier PHP

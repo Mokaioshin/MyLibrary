@@ -1,119 +1,122 @@
-const form = document.getElementById('search-form');
-const input = document.getElementById('search-input');
-const resultsContainer = document.querySelector('.search-results');
-const favoritesBtn = document.querySelector("#add-fav-btn");
-let apiKey = 'AIzaSyDVRJW3-7uMKJYWNRt_LjTDo4n6dXpmkqk';
-const submit = document.getElementById('submit');
-console.log('Message')
 
-// 🔹 Empêcher la page de se recharger lors de la recherche
-submit.addEventListener('click', function (e) {
-    const query = input.value.trim();
-    console.log('click')
+        const form = document.getElementById('search-form');
+        const input = document.getElementById('search-input');
+        const resultsContainer = document.getElementById('search-results'); //hajar:notice que j'ai changer ça de classe à id
+        const favoritesBtn = document.getElementById('add-fav-btn');
+        const favoritesContainer = document.getElementById('favorites-list');
+        const apiKey = 'AIzaSyA4jauCd-3cxIwx3HzF4QfzCzUucCR2FBI';
 
-    if (query) {
-        fetch(`https://www.googleapis.com/books/v1/volumes?q=${query}&key=${apiKey}`)
-            .then(res => res.json())
-            .then(data => displayBooks(data.items))
-            .catch(err => console.log("Erreur lors de la récupération des livres : ", err));
-    } else {
-        alert("Veuillez entrer un titre de livre.");
-    }
-});
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const query = input.value.trim();
 
-// 🔹 Fonction pour afficher les résultats de recherche
-function displayBooks(books) {
-    resultsContainer.innerHTML = ""; // Réinitialisation de l'affichage
+            if (!query) {
+                alert("Veuillez entrer un titre de livre.");
+                return;
+            }
 
-    if (books && books.length > 0) {
-        books.forEach(book => {
-            const bookCard = document.createElement('div');
-            bookCard.classList.add('book-card');
-
-            const title = document.createElement('h2');
-            title.textContent = book.volumeInfo.title || "Titre inconnu";
-            bookCard.appendChild(title);
-
-            const img = document.createElement('img');
-            img.src = book.volumeInfo.imageLinks ? book.volumeInfo.imageLinks.thumbnail : 'https://via.placeholder.com/128x192';
-            img.alt = book.volumeInfo.title;
-            bookCard.appendChild(img);
-
-            // 🔹 Création du bouton Favori
-            const favBtn = document.createElement('button');
-            favBtn.textContent = isBookInFavs(book.id) ? "Retirer des favoris" : "Ajouter aux favoris";
-            favBtn.addEventListener("click", () => toggleFav(book, favBtn));
-            bookCard.appendChild(favBtn);
-
-            resultsContainer.appendChild(bookCard);
+            fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&key=${apiKey}`)
+                .then(res => res.json())
+                .then(data => {
+                    console.log("API Response:", data);
+ //ici j'ai changer la forme 
+                    if (data.items) {
+                        displayBooks(data.items);
+                    } else {
+                        resultsContainer.innerHTML = "<p>Aucun livre trouvé.</p>";
+                    }
+                })
+                .catch(err => console.error("Erreur lors de la récupération des livres :", err));
         });
-    } else {
-        resultsContainer.innerHTML = "<p>Aucun livre trouvé.</p>";
-    }
-    console.log(bookCard)
-}
 
-// 🔹 Vérifier si un livre est déjà en favoris
-function isBookInFavs(bookId) {
-    const favs = JSON.parse(localStorage.getItem("favs")) || [];
-    return favs.some(fav => fav.id === bookId);
-}
+        function displayBooks(books) {
+            resultsContainer.innerHTML = "";
+ //ici aussi j'ai changer la forme et la syntaxe as long as it works we don't question it 
+            books.forEach(book => {
+                const bookCard = document.createElement("div");
+                bookCard.classList.add("book-card");
 
-// 🔹 Ajouter ou retirer un livre des favoris
-function toggleFav(book, btn) {
-    let favs = JSON.parse(localStorage.getItem("favs")) || [];
+                const title = document.createElement("h3");
+                title.textContent = book.volumeInfo.title || "Titre inconnu";
 
-    if (isBookInFavs(book.id)) {
-        favs = favs.filter(fav => fav.id !== book.id);
-        btn.textContent = "Ajouter aux favoris";
-        console.log(`Retiré des favoris : ${book.title}`);
-    } else {
-        const bookData = {
-            id: book.id,
-            title: book.volumeInfo.title || "Titre inconnu",
-            img: book.volumeInfo.imageLinks ? book.volumeInfo.imageLinks.thumbnail : 'https://via.placeholder.com/128x192'
-        };
-        favs.push(bookData);
-        btn.textContent = "Retirer des favoris";
-        console.log(`Ajouté aux favoris : ${book.title}`);
-    }
+                const author = document.createElement("p");
+                author.textContent = `Auteur(s) : ${book.volumeInfo.authors ? book.volumeInfo.authors.join(", ") : "Inconnu"}`;
 
-    localStorage.setItem("favs", JSON.stringify(favs));
-}
+                const img = document.createElement("img");
+                img.src = book.volumeInfo.imageLinks ? book.volumeInfo.imageLinks.thumbnail : 'https://via.placeholder.com/128x192';
+                img.alt = "Couverture du livre";
 
-// 🔹 Affichage des favoris
-favoritesBtn.addEventListener("click", () => {
-    console.log(" Affichage des favoris");
+                const favBtn = document.createElement("button");
+                favBtn.textContent = isBookInFavs(book.id) ? "Retirer des favoris" : "Ajouter aux favoris";
+                favBtn.addEventListener("click", () => toggleFav(book, favBtn));
 
-    resultsContainer.innerHTML = "";
-    const favs = JSON.parse(localStorage.getItem("favs")) || [];
+                bookCard.appendChild(title);
+                bookCard.appendChild(author);
+                bookCard.appendChild(img);
+                bookCard.appendChild(favBtn);
 
-    if (favs.length > 0) {
-        favs.forEach(book => {
-            const bookCard = document.createElement('div');
-            bookCard.classList.add('book-card');
-
-            const title = document.createElement('h2');
-            title.textContent = book.title;
-            bookCard.appendChild(title);
-
-            const img = document.createElement('img');
-            img.src = book.img;
-            img.alt = book.title;
-            bookCard.appendChild(img);
-
-            // 🔹 Bouton de suppression des favoris
-            const removeBtn = document.createElement('button');
-            removeBtn.textContent = "Retirer des favoris";
-            removeBtn.addEventListener("click", () => {
-                toggleFav(book, removeBtn);
-                bookCard.remove();
+                resultsContainer.appendChild(bookCard);
             });
-            bookCard.appendChild(removeBtn);
+        }
 
-            resultsContainer.appendChild(bookCard);
+        function isBookInFavs(bookId) {
+            const favs = JSON.parse(localStorage.getItem("favs")) || [];
+            return favs.some(fav => fav.id === bookId);
+        }
+
+        function toggleFav(book, btn) {
+            let favs = JSON.parse(localStorage.getItem("favs")) || [];
+
+            if (isBookInFavs(book.id)) {
+                favs = favs.filter(fav => fav.id !== book.id);
+                btn.textContent = "Ajouter aux favoris";
+                console.log(`Retiré des favoris : ${book.volumeInfo.title}`);
+            } else {
+                const bookData = {
+                    id: book.id,
+                    title: book.volumeInfo.title || "Titre inconnu",
+                    img: book.volumeInfo.imageLinks ? book.volumeInfo.imageLinks.thumbnail : 'https://via.placeholder.com/128x192'
+                };
+                favs.push(bookData);
+                btn.textContent = "Retirer des favoris";
+                console.log(`Ajouté aux favoris : ${book.volumeInfo.title}`);
+            }
+
+            localStorage.setItem("favs", JSON.stringify(favs));
+        }
+
+        favoritesBtn.addEventListener("click", () => {
+            console.log("Affichage des favoris");
+            favoritesContainer.innerHTML = "";
+            const favs = JSON.parse(localStorage.getItem("favs")) || [];
+
+            if (favs.length > 0) {
+                favs.forEach(book => {
+                    const bookCard = document.createElement('div');
+                    bookCard.classList.add('book-card');
+
+                    const title = document.createElement('h2');
+                    title.textContent = book.title;
+
+                    const img = document.createElement('img');
+                    img.src = book.img;
+                    img.alt = book.title;
+
+                    const removeBtn = document.createElement('button');
+                    removeBtn.textContent = "Retirer des favoris";
+                    removeBtn.addEventListener("click", () => {
+                        toggleFav(book, removeBtn);
+                        bookCard.remove();
+                    });
+
+                    bookCard.appendChild(title);
+                    bookCard.appendChild(img);
+                    bookCard.appendChild(removeBtn);
+                    favoritesContainer.appendChild(bookCard);
+                });
+            } else {
+                favoritesContainer.innerHTML = "<p>Aucun favori pour le moment.</p>";
+            }
         });
-    } else {
-        resultsContainer.innerHTML = "<p>Aucun favori pour le moment.</p>";
-    }
-});
+        //il y a le code original dans le chat si tu veux le revoir 
+        // assi il y a une copie de ce code aussi in case something happened
