@@ -19,7 +19,7 @@
                 .then(res => res.json())
                 .then(data => {
                     console.log("API Response:", data);
- //ici j'ai changer la forme 
+ 
                     if (data.items) {
                         displayBooks(data.items);
                     } else {
@@ -31,7 +31,7 @@
 
         function displayBooks(books) {
             resultsContainer.innerHTML = "";
- //ici aussi j'ai changer la forme et la syntaxe as long as it works we don't question it 
+
             books.forEach(book => {
                 const bookCard = document.createElement("div");
                 bookCard.classList.add("book-card");
@@ -118,5 +118,4 @@
                 favoritesContainer.innerHTML = "<p>Aucun favori pour le moment.</p>";
             }
         });
-        //il y a le code original dans le chat si tu veux le revoir 
-        // assi il y a une copie de ce code aussi in case something happened
+        
